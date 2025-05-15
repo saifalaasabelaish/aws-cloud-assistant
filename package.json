@@ -1,0 +1,12 @@
+{
+  "name": "aws-cloud-assistant",
+  "version": "1.0.0",
+  "description": "A serverless conversational AI assistant built with AWS Amplify and Amazon Lex",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
