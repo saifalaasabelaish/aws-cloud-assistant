@@ -34,25 +34,38 @@ function Chat() {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
 
+  // Configure AWS SDK with your Identity Pool ID
+  AWS.config.region = 'us-east-1'; // Your region
+  AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+    IdentityPoolId: 'us-east-1:7c88856e-435f-4459-a315-f56766bfdec6', // Your Identity Pool ID
+  });
+
+  const lexruntime = new AWS.LexRuntime();
+
   const handleSend = async () => {
-    const lexruntime = new AWS.LexRuntime({
-      region: 'us-east-1',
-    });
+    if (!message.trim()) return;
 
     const params = {
-      botAlias: '$LATEST',
-      botName: 'CloudAssistantBot', // استبدل باسم البوت الفعلي
+      botAlias: '$LATEST', // or your bot alias
+      botName: 'CloudAssistant',
       inputText: message,
-      userId: 'user1',
+      userId: 'user1', // You can make this dynamic if you want
       sessionAttributes: {},
     };
 
     try {
       const data = await lexruntime.postText(params).promise();
-      setMessages([...messages, { text: message, sender: 'user' }, { text: data.message, sender: 'bot' }]);
+
+      setMessages((prev) => [
+        ...prev,
+        { text: message, sender: 'user' },
+        { text: data.message || 'No response from bot', sender: 'bot' },
+      ]);
     } catch (err) {
-      console.log(err);
+      console.error('Lex error:', err);
+      setMessages((prev) => [...prev, { text: 'Error communicating with bot.', sender: 'bot' }]);
     }
+
     setMessage('');
   };
 
@@ -79,6 +92,7 @@ function Chat() {
             variant="outlined"
             placeholder="Type your message..."
             sx={{ bgcolor: 'white', borderRadius: 8 }}
+            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
           />
           <IconButton
             color="primary"
