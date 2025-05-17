@@ -50,7 +50,6 @@ function Chat() {
 
         const session = await fetchAuthSession();
 
-        // Check if session or credentials are missing
         if (!session || !session.credentials || !session.credentials.accessKeyId) {
           navigate('/login');
           return;
@@ -96,6 +95,17 @@ function Chat() {
       };
 
       const response = await lexClient.recognizeText(params);
+      console.log('Lex full response:', response);
+
+      // Log all interpretations with intent name and confidence
+      if (response.interpretations && response.interpretations.length > 0) {
+        response.interpretations.forEach((interp, i) => {
+          console.log(`Interpretation ${i}: intent = ${interp.intent.name}, confidence = ${interp.nluConfidence?.score}`);
+        });
+      }
+
+      const intentName = response.sessionState?.intent?.name;
+      console.log('Matched intent:', intentName);
 
       if (response.messages && response.messages.length > 0) {
         const botMessage = response.messages[0].content;
@@ -154,10 +164,10 @@ function Chat() {
             </Box>
           ) : (
             messages.map((msg, index) => (
-              <Box 
-                key={index} 
-                sx={{ 
-                  display: 'flex', 
+              <Box
+                key={index}
+                sx={{
+                  display: 'flex',
                   justifyContent: msg.sender === 'user' ? 'flex-end' : 'flex-start',
                   mb: 2
                 }}
