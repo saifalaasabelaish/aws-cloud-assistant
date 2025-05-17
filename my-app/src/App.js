@@ -3,6 +3,7 @@ import { Amplify } from 'aws-amplify';
 import awsExports from './aws-exports';
 import Login from './pages/Login';
 import Chat from './components/Chat';
+import ConfirmEmail from './pages/ConfirmEmail'; 
 import Signup from './pages/Signup';
 import PasswordReset from './pages/PasswordReset'; // استيراد المكون الجديد
 import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
@@ -38,6 +39,7 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/password-reset" element={<PasswordReset />} /> {/* مسار جديد */}
           <Route path="/" element={<RedirectToSignup />} />
+          <Route path="/confirm-email" element={<ConfirmEmail />} />
         </Routes>
       </Router>
     </ThemeProvider>

@@ -1,19 +1,40 @@
+// Login.js
 import React, { useState } from 'react';
-import { signIn } from 'aws-amplify/auth';
-import { Button, TextField, Container, Typography, Box, Paper, Link } from '@mui/material';
+import { signIn, fetchAuthSession } from '@aws-amplify/auth';
+import awsconfig from '../aws-exports';
+import { Amplify } from 'aws-amplify';
+import {
+  Button, TextField, Container, Typography, Box, Paper, Link
+} from '@mui/material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
+
+Amplify.configure(awsconfig);
 
 function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async () => {
+    setLoading(true);
     try {
+      // Sign in the user
       await signIn({ username, password });
+
+      // Wait for AWS credentials to be available
+      const session = await fetchAuthSession();
+
+      if (!session?.credentials || !session.credentials.accessKeyId) {
+        throw new Error('Failed to fetch AWS credentials after login.');
+      }
+
+      // Now credentials are ready — navigate to chat
       navigate('/chat');
     } catch (error) {
       alert('Login failed: ' + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -52,6 +73,7 @@ function Login() {
           <Button
             variant="contained"
             onClick={handleLogin}
+            disabled={loading}
             fullWidth
             sx={{
               mt: 2,
@@ -62,7 +84,7 @@ function Login() {
               textTransform: 'none',
             }}
           >
-            Login
+            {loading ? 'Logging in...' : 'Login'}
           </Button>
         </Box>
 
@@ -77,7 +99,7 @@ function Login() {
 
         <Box sx={{ textAlign: 'center', mt: 3 }}>
           <Typography variant="body2" color="textSecondary">
-            Don’t have an account?{' '}
+            Don't have an account?{' '}
             <Link component={RouterLink} to="/signup" sx={{ color: '#1976d2', fontWeight: 'bold' }}>
               Sign Up
             </Link>
