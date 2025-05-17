@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@mui/icons-material": "^7.1.0",
+    "aws-sdk": "^2.1692.0"
+  }
+}
