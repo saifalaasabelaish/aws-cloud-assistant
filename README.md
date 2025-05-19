@@ -17,10 +17,10 @@ The **AWS Cloud Assistant** is an intelligent chatbot interface that enables nat
 
 | Role | Name |
 |------|------|
-| **Lead Developer** | Saif Sabelaish |
-| **Backend Specialist** | Data Abdelhaqq |
-| **AWS Architect** | Tareq Saymeh |
-| **UI/UX Designer** | Roaa Kittaneh |
+| **ChatBot developer** | Saif Sabelaish |
+| **Backend developer** | Data Abdelhaqq |
+| **Backend developer** | Tareq Saymeh |
+| **Frontend developer ** | Roaa Kittaneh |
 
 ## 🎥 Demo Video
 [![Watch Demo](https://img.shields.io/badge/Watch-Demo-blue?style=for-the-badge)](https://drive.google.com/file/d/1uBwJec8nIYdrihbrcl-5nmjWHOdAzMQr/view?usp=sharing)
