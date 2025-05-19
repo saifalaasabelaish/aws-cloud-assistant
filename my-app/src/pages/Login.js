@@ -1,6 +1,6 @@
 // Login.js
 import React, { useState } from 'react';
-import { signIn, fetchAuthSession } from '@aws-amplify/auth';
+import { signIn, signOut, fetchAuthSession, getCurrentUser } from '@aws-amplify/auth';
 import awsconfig from '../aws-exports';
 import { Amplify } from 'aws-amplify';
 import {
@@ -14,25 +14,40 @@ function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleLogin = async () => {
     setLoading(true);
+    setError('');
+    
     try {
-      // Sign in the user
-      await signIn({ username, password });
+      // Check if there's already a signed in user
+      try {
+        const user = await getCurrentUser();
+        if (user) {
+          // Sign out the existing user first
+          await signOut();
+        }
+      } catch (e) {
+        // No current user - proceed with login
+        console.log('No existing user session');
+      }
 
-      // Wait for AWS credentials to be available
+      // Sign in with the new credentials
+      const signInResponse = await signIn({ username, password });
+      
+      // Verify the session and credentials
       const session = await fetchAuthSession();
-
       if (!session?.credentials || !session.credentials.accessKeyId) {
         throw new Error('Failed to fetch AWS credentials after login.');
       }
 
-      // Now credentials are ready — navigate to chat
+      // Successful login - navigate to chat
       navigate('/chat');
     } catch (error) {
-      alert('Login failed: ' + error.message);
+      console.error('Login error:', error);
+      setError(error.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -49,6 +64,18 @@ function Login() {
             Sign in to continue chatting!
           </Typography>
         </Box>
+
+        {error && (
+          <Box sx={{ 
+            backgroundColor: '#ffebee', 
+            p: 2, 
+            mb: 2, 
+            borderRadius: 1,
+            borderLeft: '4px solid #f44336'
+          }}>
+            <Typography color="error">{error}</Typography>
+          </Box>
+        )}
 
         <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <TextField

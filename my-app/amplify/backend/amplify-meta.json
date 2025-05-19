@@ -1,0 +1,112 @@
+{
+  "providers": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-myapp-testing-2bb4b-authRole",
+      "UnauthRoleArn": "arn:aws:iam::423623831207:role/amplify-myapp-testing-2bb4b-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::423623831207:role/amplify-myapp-testing-2bb4b-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-myapp-testing-2bb4b-deployment",
+      "UnauthRoleName": "amplify-myapp-testing-2bb4b-unauthRole",
+      "StackName": "amplify-myapp-testing-2bb4b",
+      "StackId": "arn:aws:cloudformation:us-east-1:423623831207:stack/amplify-myapp-testing-2bb4b/09b2eb00-34b9-11f0-8491-12e590189bc9",
+      "AmplifyAppId": "d1hp4wn9d0dhoa"
+    }
+  },
+  "auth": {
+    "myapp33cf80c8": {
+      "customAuth": false,
+      "dependsOn": [],
+      "frontendAuthConfig": {
+        "mfaConfiguration": "OFF",
+        "mfaTypes": [
+          "SMS"
+        ],
+        "passwordProtectionSettings": {
+          "passwordPolicyMinLength": 8,
+          "passwordPolicyCharacters": []
+        },
+        "signupAttributes": [
+          "EMAIL"
+        ],
+        "socialProviders": [],
+        "usernameAttributes": [],
+        "verificationMechanisms": [
+          "EMAIL"
+        ]
+      },
+      "providerPlugin": "awscloudformation",
+      "service": "Cognito",
+      "providerMetadata": {
+        "s3TemplateURL": "https://s3.amazonaws.com/amplify-myapp-testing-2bb4b-deployment/amplify-cfn-templates/auth/myapp33cf80c8-cloudformation-template.json",
+        "logicalId": "authmyapp33cf80c8"
+      },
+      "lastPushTimeStamp": "2025-05-19T14:07:44.300Z",
+      "output": {
+        "UserPoolId": "us-east-1_dDT5Au9z5",
+        "AppClientIDWeb": "7v4laaenq7rmlq79c7hgvtnsmh",
+        "AppClientID": "4229oegh569hueoebuhonqd667",
+        "IdentityPoolId": "us-east-1:183c9ea8-f551-4ed9-b6be-7c211ceaa20a",
+        "UserPoolArn": "arn:aws:cognito-idp:us-east-1:423623831207:userpool/us-east-1_dDT5Au9z5",
+        "IdentityPoolName": "myapp33cf80c8_identitypool_33cf80c8__testing",
+        "UserPoolName": "myapp33cf80c8_userpool_33cf80c8"
+      },
+      "lastPushDirHash": "D+O+SbLPK6jQey3AJdPbrF1dxUU="
+    }
+  },
+  "hosting": {
+    "amplifyhosting": {
+      "providerPlugin": "awscloudformation",
+      "service": "amplifyhosting",
+      "type": "manual",
+      "providerMetadata": {
+        "s3TemplateURL": "https://s3.amazonaws.com/amplify-myapp-testing-2bb4b-deployment/amplify-cfn-templates/hosting/amplifyhosting-template.json",
+        "logicalId": "hostingamplifyhosting"
+      },
+      "lastPushTimeStamp": "2025-05-19T14:07:44.314Z",
+      "output": {},
+      "lastPushDirHash": "LSJ1hN/d2Gh1m04FyR+h8w4s4js="
+    }
+  },
+  "api": {
+    "myapp": {
+      "service": "AppSync",
+      "providerPlugin": "awscloudformation",
+      "dependsOn": [
+        {
+          "category": "auth",
+          "resourceName": "myapp33cf80c8",
+          "attributes": [
+            "UserPoolId"
+          ]
+        }
+      ],
+      "output": {
+        "authConfig": {
+          "defaultAuthentication": {
+            "authenticationType": "API_KEY",
+            "apiKeyConfig": {
+              "apiKeyExpirationDays": 7
+            }
+          },
+          "additionalAuthenticationProviders": [
+            {
+              "authenticationType": "AMAZON_COGNITO_USER_POOLS",
+              "userPoolConfig": {
+                "userPoolId": "authmyapp33cf80c8"
+              }
+            }
+          ]
+        },
+        "GraphQLAPIIdOutput": "3jtn5gijcfaobjwsejpgae3i5u",
+        "GraphQLAPIEndpointOutput": "https://qwxslwylfvc57di4c4mkapr7ry.appsync-api.us-east-1.amazonaws.com/graphql",
+        "GraphQLAPIKeyOutput": "da2-t7n3jx2szrgh7hyso5esaz2rwe"
+      },
+      "lastPushTimeStamp": "2025-05-19T14:07:46.683Z",
+      "providerMetadata": {
+        "s3TemplateURL": "https://s3.amazonaws.com/amplify-myapp-testing-2bb4b-deployment/amplify-cfn-templates/api/cloudformation-template.json",
+        "logicalId": "apimyapp"
+      },
+      "lastPushDirHash": "8yJvrbHk/Io8iYkgSIinfw2yDn8="
+    }
+  }
+}
