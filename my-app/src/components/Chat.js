@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { fetchAuthSession, signOut } from '@aws-amplify/auth';
 import { LexRuntimeV2 } from '@aws-sdk/client-lex-runtime-v2';
+import { generateClient } from 'aws-amplify/api';
+import * as mutations from '../graphql/mutations';
+import * as queries from '../graphql/queries';
+
 import {
   TextField, List, ListItem, Paper, Container, Typography, Box,
   IconButton, CircularProgress, AppBar, Toolbar, Button
@@ -8,6 +12,8 @@ import {
 import SendIcon from '@mui/icons-material/Send';
 import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
+
+const client = generateClient();
 
 const ChatContainer = styled(Paper)(({ theme }) => ({
   height: '70vh',
@@ -34,6 +40,47 @@ const MessageItem = styled(ListItem)(({ theme, sender }) => ({
   wordWrap: 'break-word',
   alignSelf: sender === 'user' ? 'flex-end' : 'flex-start',
 }));
+
+
+async function saveMessageToGraphQL(messageObj) {
+  try {
+    const response = await client.graphql({
+      query: mutations.createMessage,
+      variables: { input: messageObj },
+      authMode: 'userPool' // Ensure you're using the right auth mode
+    });
+
+    if (response.errors) {
+      console.error('GraphQL mutation errors:', response.errors);
+      throw new Error(response.errors[0].message);
+    }
+
+    return response.data.createMessage;
+  } catch (error) {
+    console.error('Error saving message:', error);
+    throw error; // Re-throw to handle in the calling function
+  }
+}
+
+async function fetchMessagesFromGraphQL() {
+  try {
+    const response = await client.graphql({ 
+      query: queries.listMessages,
+      authMode: 'userPool' // Ensure you're using the right auth mode
+    });
+    
+    if (response.errors) {
+      console.error('GraphQL query errors:', response.errors);
+      throw new Error(response.errors[0].message);
+    }
+
+    return response.data.listMessages.items || [];
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+    throw error; // Re-throw to handle in the calling function
+  }
+}
+
 
 function Chat() {
   const [message, setMessage] = useState('');
@@ -80,42 +127,67 @@ function Chat() {
     initializeLex();
   }, [navigate]);
 
+  // Load chat history after Lex client ready and not loading
+  useEffect(() => {
+    const loadMessages = async () => {
+      const msgs = await fetchMessagesFromGraphQL();
+      msgs.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      setMessages(msgs.map(m => ({
+        text: m.content,
+        sender: m.sender,
+        id: m.id,
+        createdAt: m.createdAt,
+      })));
+    };
+
+    if (!isLoading && lexClient) {
+      loadMessages();
+    }
+  }, [isLoading, lexClient]);
+
   const handleSend = async () => {
     if (!message.trim() || !lexClient) return;
 
-    setMessages(prev => [...prev, { text: message, sender: 'user' }]);
+    const userMessage = { text: message, sender: 'user' };
+    setMessages(prev => [...prev, userMessage]);
 
     try {
       const params = {
         botId: 'SHMD3PHZNQ',
-        botAliasId: 'TSTALIASID',
+        botAliasId: 'M8CAEZINOT',
         localeId: 'en_US',
         sessionId: sessionId,
         text: message,
       };
 
       const response = await lexClient.recognizeText(params);
-      console.log('Lex full response:', response);
 
-      // Log all interpretations with intent name and confidence
-      if (response.interpretations && response.interpretations.length > 0) {
-        response.interpretations.forEach((interp, i) => {
-          console.log(`Interpretation ${i}: intent = ${interp.intent.name}, confidence = ${interp.nluConfidence?.score}`);
-        });
-      }
+      // Save user message to GraphQL
+      await saveMessageToGraphQL({
+        content: message,
+        sender: 'user',
+      });
 
-      const intentName = response.sessionState?.intent?.name;
-      console.log('Matched intent:', intentName);
-
+      let botReply = "I didn't understand that. Can you rephrase?";
       if (response.messages && response.messages.length > 0) {
-        const botMessage = response.messages[0].content;
-        setMessages(prev => [...prev, { text: botMessage, sender: 'bot' }]);
-      } else {
-        setMessages(prev => [...prev, { text: "I didn't understand that. Can you rephrase?", sender: 'bot' }]);
+        botReply = response.messages[0].content;
       }
+
+      setMessages(prev => [...prev, { text: botReply, sender: 'bot' }]);
+
+      // Save bot message to GraphQL
+      await saveMessageToGraphQL({
+        content: botReply,
+        sender: 'bot',
+      });
     } catch (error) {
-      console.error("Error communicating with Lex:", error);
-      setMessages(prev => [...prev, { text: "Sorry, I'm having trouble connecting. " + error.message, sender: 'bot' }]);
+      console.error('Error communicating with Lex:', error);
+      const errorMsg = "Sorry, I'm having trouble connecting. " + error.message;
+      setMessages(prev => [...prev, { text: errorMsg, sender: 'bot' }]);
+      await saveMessageToGraphQL({
+        content: errorMsg,
+        sender: 'bot',
+      });
     }
 
     setMessage('');
@@ -165,7 +237,7 @@ function Chat() {
           ) : (
             messages.map((msg, index) => (
               <Box
-                key={index}
+                key={msg.id || index}
                 sx={{
                   display: 'flex',
                   justifyContent: msg.sender === 'user' ? 'flex-end' : 'flex-start',
@@ -203,5 +275,5 @@ function Chat() {
     </Container>
   );
 }
-//test
+
 export default Chat;
